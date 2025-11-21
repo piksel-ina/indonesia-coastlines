@@ -2,19 +2,24 @@ import sys
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import Tuple, Union
+from typing import Iterable, Tuple, Union
 
 import click
 import geopandas as gpd
 import xarray as xr
+from datacube import Datacube
 from datacube.utils.dask import start_local_dask
-from eo_tides.eo import pixel_tides
 from dea_tools.spatial import hillshade, subpixel_contours
+from eo_tides.eo import pixel_tides
 from odc.algo import mask_cleanup, to_f32
+from odc.geo.geobox import GeoBox
 from odc.stac import configure_s3_access, load
-from pystac import ItemCollection
 from pystac_client import Client
 from s3path import S3Path
+from datacube.api.query import solar_day
+
+
+from collections import namedtuple
 
 from coastlines.config import CoastlinesConfig
 
@@ -43,6 +48,7 @@ from coastlines.vector import (
     points_on_line,
 )
 
+
 # TODO: work out how to pass this in...
 STAC_CFG = {
     "landsat-c2l2-sr": {
@@ -52,6 +58,8 @@ STAC_CFG = {
     },
     "*": {"warnings": "ignore"},
 }
+
+Suninfo = namedtuple("Suninfo", ["elevation", "azimuth"])
 
 
 # TODO: Make this changeable...
@@ -70,10 +78,14 @@ BAD_IDS = [
 ]
 
 
-def sanitise_tile_id(tile_id: str, zero_pad: bool = True) -> str:
-    tile_parts = tile_id.split(",")
+def sanitise_tile_id(tile_id: str | Iterable[int], zero_pad: bool = True) -> str:
+    if type(tile_id) is str:
+        tile_parts = tile_id.split(",")
+    else:
+        tile_parts = tile_id
+
     if len(tile_parts) == 2:
-        out_tile_id = "_".join([p.zfill(3) for p in tile_parts])
+        out_tile_id = "_".join([str(p).zfill(3) for p in tile_parts])
     else:
         out_tile_id = out_tile_id.zfill(3)
     return out_tile_id
@@ -101,30 +113,25 @@ def get_output_path(
     return output_path
 
 
-def load_and_mask_data_with_stac(
-    config: CoastlinesConfig,
-    query: dict,
-    include_nir: bool = False,
-    include_awei: bool = False,
-    include_wi: bool = False,
-    debug: bool = False,
-) -> xr.Dataset:
-    lower_limit = config.stac.lower_scene_limit
-    upper_limit = config.stac.upper_scene_limit
-    index = config.options.water_index
-
-    if index not in ["mndwi", "ndwi", "combined", "mndwi_nir"]:
-        raise CoastlinesException(
-            f"Unknown water index: {index}. Must be one of 'mndwi', 'ndwi', 'combined' or 'mndwi_nir'"
-        )
+def stac_load(
+    geobox: GeoBox, bands: Iterable[str], config: CoastlinesConfig
+) -> Tuple[xr.Dataset, dict[str, Suninfo]]:
+    lower_limit = config.options.lower_scene_limit
+    upper_limit = config.options.upper_scene_limit
 
     client = Client.open(config.stac.stac_api_url)
 
+    datetime = f"{config.options.start_year - 1}/{config.options.end_year + 1}"
+
     # Search for STAC Items. First for only T1 then for both T1 and T2
-    query["collections"] = config.stac.stac_collections
+    query = {
+        "collections": config.stac.stac_collections,
+        "datetime": datetime,
+        "intersects": geobox.geographic_extent,
+    }
     query_filter = {"landsat:collection_category": {"in": ["T1"]}}
     search = client.search(
-        query=query_filter,
+        filter=query_filter,
         **query,
     )
     n_items = search.matched()
@@ -162,7 +169,7 @@ def load_and_mask_data_with_stac(
             f"Found {n_items} items using both T1 and T2 scenes. This is not enough to do a reliable process."
         )
 
-    items = list(search.get_items())
+    items = search.item_collection()
 
     # Hack to remove some bad items
     items = [i for i in items if i.id not in BAD_IDS]
@@ -170,16 +177,13 @@ def load_and_mask_data_with_stac(
     epsg_codes = Counter(item.properties["proj:code"] for item in items)
     epsg_code = epsg_codes.most_common(1)[0][0]
 
-    bands = ["green", "swir16", "qa_pixel"]
-
-    if include_nir:
-        bands.append("nir08")
-
-    if include_awei:
-        bands = bands + ["swir22", "blue"]
-
-    if include_wi:
-        bands.append("red")
+    suninfo_by_day = {
+        item.datetime.strftime("%Y-%m-%d"): Suninfo(
+            elevation=item.properties["eo:cloud_coverage"],
+            azimuth=item.properties["eo:azimuth"],
+        )
+        for item in items
+    }
 
     ds = load(
         items,
@@ -194,6 +198,105 @@ def load_and_mask_data_with_stac(
         patch_url=http_to_s3_url,
         fail_on_error=False,
     )
+
+    return ds, suninfo_by_day, items
+
+
+def datacube_load(
+    geobox: GeoBox, bands: Iterable[str], config: CoastlinesConfig
+) -> xr.Dataset:
+    dc = Datacube()
+
+    time_query = (
+        f"{config.options.start_year - 1}-01-01T00:00Z",
+        f"{config.options.end_year + 1}-12-31T23:59Z",
+    )
+
+    datasets = dc.find_datasets(
+        product=["ls5_c2l2_sr", "ls7_c2l2_sr", "ls8_c2l2_sr", "ls9_c2l2_sr"],
+        collection_category=["T1"],
+        time=time_query,
+        geopolygon=geobox.geographic_extent,
+    )
+
+    print(f"Found {len(datasets)} datasets")
+
+    if len(datasets) < config.options.lower_scene_limit:
+        print(
+            "Warning, not enough T1 datasets found, searching for T2 datasets as well"
+        )
+        datasets += dc.find_datasets(
+            product=["ls5_c2l2_sr", "ls7_c2l2_sr", "ls8_c2l2_sr", "ls9_c2l2_sr"],
+            collection_category=["T2"],
+            time=time_query,
+            geopolygon=geobox.geographic_extent,
+        )
+
+    if len(datasets) < config.options.lower_scene_limit:
+        raise CoastlinesException(
+            f"Found {len(datasets)} datasets, but need at least {config.options.lower_scene_limit}."
+        )
+
+    epsg_codes = Counter(dataset.metadata_doc["crs"] for dataset in datasets)
+    epsg_code = epsg_codes.most_common(1)[0][0]
+
+    suninfo_by_day = {
+        str(solar_day(dataset)): Suninfo(
+            elevation=dataset.metadata_doc["properties"]["eo:sun_elevation"],
+            azimuth=dataset.metadata_doc["properties"]["eo:sun_azimuth"],
+        )
+        for dataset in datasets
+    }
+
+    ds = dc.load(
+        datasets=datasets,
+        geopolygon=geobox.geographic_extent,
+        measurements=bands,
+        output_crs=epsg_code,
+        resolution=30,
+        group_by="solar_day",
+        patch_url=http_to_s3_url,
+        dask_chunks={"x": 10000, "y": 10000, "time": 1},
+        driver="rio",
+    )
+
+    return ds, suninfo_by_day, datasets
+
+
+def load_and_mask_data(
+    config: CoastlinesConfig,
+    geobox: GeoBox,
+    include_nir: bool = False,
+    include_awei: bool = False,
+    include_wi: bool = False,
+    debug: bool = False,
+    use_datacube: bool = True,
+) -> xr.Dataset:
+    index = config.options.water_index
+
+    if index not in ["mndwi", "ndwi", "combined", "mndwi_nir"]:
+        raise CoastlinesException(
+            f"Unknown water index: {index}. Must be one of 'mndwi', 'ndwi', 'combined' or 'mndwi_nir'"
+        )
+
+    bands = ["green", "swir16", "qa_pixel"]
+
+    if include_nir:
+        bands.append("nir08")
+
+    if include_awei:
+        bands = bands + ["swir22", "blue"]
+
+    if include_wi:
+        bands.append("red")
+
+    geobox = geobox.buffered(config.options.load_buffer_distance)
+    if use_datacube:
+        print("Loading with datacube")
+        ds, suninfo_by_day, meta = datacube_load(geobox=geobox, bands=bands, config=config)
+    else:
+        print("Loading with stac")
+        ds, suninfo_by_day, meta = stac_load(geobox=geobox, bands=bands, config=config)
 
     # Get the nodata mask, just for the two main bands
     nodata_mask = (ds.green == 0) | (ds.swir16 == 0)
@@ -224,6 +327,7 @@ def load_and_mask_data_with_stac(
     if include_wi:
         ds["red"] = to_f32(ds["red"], scale=0.0000275, offset=-0.2)
 
+    # TODO: Consider using clip(0, 1) in here, rather than removing invalid values
     # Remove values outside the valid range (0-1), but not for nir or awei bands
     invalid_ard_values = (
         (ds["green"] < 0) | (ds["green"] > 1) | (ds["swir16"] < 0) | (ds["swir16"] > 1)
@@ -281,23 +385,25 @@ def load_and_mask_data_with_stac(
 
         ds = ds[return_bands]
 
-    return ds, items
+    if debug:
+        return ds, suninfo_by_day, meta
+    else:
+        return ds, suninfo_by_day
 
 
 def terrain_shadow(
     ds: xr.Dataset,
     dem: xr.Dataset,
-    items_by_time: dict,
+    suninfo_by_day: dict[str, Suninfo],
     threshold: float = 0.25,
     radius: int = 1,
 ):
     ds = ds.squeeze()
-    item = items_by_time[ds.time.values.astype(str).split(".")[0]]
 
-    elevation = item.properties["view:sun_elevation"]
-    azimuth = item.properties["view:sun_azimuth"]
+    date = ds.time.values.astype(str).split("T")[0]
+    suninfo = suninfo_by_day[date]
 
-    hs = hillshade(dem, elevation, azimuth)
+    hs = hillshade(dem, suninfo.elevation, suninfo.azimuth)
     hs = hs < threshold
     hs_da = xr.DataArray(hs, dims=["y", "x"])
     hs_da = mask_cleanup(hs_da, [("opening", radius), ("dilation", radius)])
@@ -307,16 +413,13 @@ def terrain_shadow(
 
 def mask_pixels_by_hillshadow(
     ds: xr.Dataset,
-    items: ItemCollection,
+    suninfo_by_day: dict[str, Suninfo],
     stac_catalog: str = "https://earth-search.aws.element84.com/v1/",
     stac_collection: str = "cop-dem-glo-30",
     debug: bool = False,
 ) -> xr.Dataset:
     client = Client.open(stac_catalog)
     bbox = list(ds.geobox.extent.to_crs("epsg:4326").boundingbox)
-    items_by_time = {
-        item.datetime.strftime("%Y-%m-%dT%H:%M:%S"): item for item in items
-    }
 
     dem_items = list(client.search(collections=[stac_collection], bbox=bbox).items())
 
@@ -331,7 +434,7 @@ def mask_pixels_by_hillshadow(
             terrain_shadow,
             use_threads=True,
             dem=dem.squeeze().data.values,
-            items_by_time=items_by_time,
+            suninfo_by_day=suninfo_by_day,
         )
 
         # Filter out the hill shaded pixels
@@ -343,14 +446,31 @@ def mask_pixels_by_hillshadow(
 
 
 def mask_pixels_by_tide(
-    ds: xr.Dataset, tide_data_location: str, tide_centre: float, tide_model: str, ensemble_model_list: list[str], ensemble_model_rankings: str, debug: bool = False
+    ds: xr.Dataset,
+    tide_data_location: str,
+    tide_centre: float,
+    tide_model: str,
+    ensemble_model_list: list[str],
+    ensemble_model_rankings: str,
+    debug: bool = False,
 ) -> xr.Dataset:
     tides_lowres = pixel_tides(
-        ds, resample=False, directory=tide_data_location, dask_compute=True, model=tide_model, ensemble_models=ensemble_model_list, ranking_points=ensemble_model_rankings
+        ds,
+        resample=False,
+        directory=tide_data_location,
+        dask_compute=True,
+        model=tide_model,
+        ensemble_models=ensemble_model_list,
+        ranking_points=ensemble_model_rankings,
     )
 
     tides = pixel_tides(
-        ds, directory=tide_data_location, dask_compute=True, model=tide_model, ensemble_models=ensemble_model_list, ranking_points=ensemble_model_rankings
+        ds,
+        directory=tide_data_location,
+        dask_compute=True,
+        model=tide_model,
+        ensemble_models=ensemble_model_list,
+        ranking_points=ensemble_model_rankings,
     )
 
     tide_cutoff_min, tide_cutoff_max = tide_cutoffs(
@@ -369,10 +489,22 @@ def mask_pixels_by_tide(
 
 
 def filter_by_tides(
-    ds: xr.Dataset, tide_data_location: str, tide_centre: float, tide_model: str, ensemble_model_list: list[str], ensemble_model_rankings: str
+    ds: xr.Dataset,
+    tide_data_location: str,
+    tide_centre: float,
+    tide_model: str,
+    ensemble_model_list: list[str],
+    ensemble_model_rankings: str,
 ) -> xr.Dataset:
     """Filter out scenes that are wholy covered by extreme tides"""
-    tides_lowres = pixel_tides(ds, resample=False, directory=tide_data_location, model=tide_model, ensemble_models=ensemble_model_list, ranking_points=ensemble_model_rankings)
+    tides_lowres = pixel_tides(
+        ds,
+        resample=False,
+        directory=tide_data_location,
+        model=tide_model,
+        ensemble_models=ensemble_model_list,
+        ranking_points=ensemble_model_rankings,
+    )
 
     tide_cutoff_min, tide_cutoff_max = tide_cutoffs(
         ds, tides_lowres, tide_centre=tide_centre, reproject=False
@@ -425,13 +557,13 @@ def get_one_year_composite(
         year_summary["gapfill_green"] = three_years.green.median(dim="time")
         year_summary["gapfill_swir"] = three_years.swir16.median(dim="time")
 
-        # Get raw mndwi and ndwi values too
-        year_summary["mndwi"] = one_year.mndwi.median(dim="time")
-        year_summary["gapfill_mndwi"] = three_years.mndwi.median(dim="time")
+        # # Get raw mndwi and ndwi values too
+        # year_summary["mndwi"] = one_year.mndwi.median(dim="time")
+        # year_summary["gapfill_mndwi"] = three_years.mndwi.median(dim="time")
 
-        if include_nir:
-            year_summary["ndwi"] = one_year.ndwi.median(dim="time")
-            year_summary["gapfill_ndwi"] = three_years.ndwi.median(dim="time")
+        # if include_nir:
+        #     year_summary["ndwi"] = one_year.ndwi.median(dim="time")
+        #     year_summary["gapfill_ndwi"] = three_years.ndwi.median(dim="time")
 
     return year, year_summary
 
@@ -445,6 +577,7 @@ def generate_yearly_composites(
     include_nir: bool = False,
     debug: bool = False,
 ) -> xr.Dataset:
+    print(f"Water index is {water_index}")
     # Store a list of output arrays and years, knowing we might lose empty years
     yearly_ds_list = []
     data_year_list = []
@@ -634,7 +767,7 @@ def process_coastlines(
     # Loading data
     data = None
     if config.stac is not None:
-        data, items = load_and_mask_data_with_stac(
+        data, items = load_and_mask_data(
             config,
             query,
             include_nir=config.options.include_nir,
@@ -647,7 +780,14 @@ def process_coastlines(
     # Calculate tides and combine with the data
     log.info("Filtering by tides")
     n_times = len(data.time)
-    data = filter_by_tides(data, tide_data_location, config.options.tide_centre, config.options.tide_model, ensemble_model_list=config.options.ensemble_model_list, ensemble_model_rankings=config.options.ensemble_model_rankings)
+    data = filter_by_tides(
+        data,
+        tide_data_location,
+        config.options.tide_centre,
+        config.options.tide_model,
+        ensemble_model_list=config.options.ensemble_model_list,
+        ensemble_model_rankings=config.options.ensemble_model_rankings,
+    )
     log.info(
         f"Dropped {n_times - len(data.time)} out of {n_times} timesteps due to extreme tides"
     )
@@ -657,14 +797,29 @@ def process_coastlines(
         data = data.compute()
 
     log.info("Running per-pixel tide masking at high resolution")
-    data = mask_pixels_by_tide(data, tide_data_location, config.options.tide_centre, config.options.tide_model, ensemble_model_list=config.options.ensemble_model_list, ensemble_model_rankings=config.options.ensemble_model_rankings)
+    data = mask_pixels_by_tide(
+        data,
+        tide_data_location,
+        config.options.tide_centre,
+        config.options.tide_model,
+        ensemble_model_list=config.options.ensemble_model_list,
+        ensemble_model_rankings=config.options.ensemble_model_rankings,
+    )
 
     if config.options.mask_with_hillshade:
         warning_message = "No DEM found for this area. Skipping hillshadow mask"
         log.info("Running per-pixel terrain shadow masking")
-        if config.options.hillshade_stac_catalog is not None and config.options.hillshade_stac_collection  is not None:
+        if (
+            config.options.hillshade_stac_catalog is not None
+            and config.options.hillshade_stac_collection is not None
+        ):
             try:
-                data = mask_pixels_by_hillshadow(data, items, config.options.hillshade_stac_catalog, config.options.hillshade_stac_collection)
+                data = mask_pixels_by_hillshadow(
+                    data,
+                    items,
+                    config.options.hillshade_stac_catalog,
+                    config.options.hillshade_stac_collection,
+                )
             except CoastlinesException:
                 log.warning(warning_message)
         else:

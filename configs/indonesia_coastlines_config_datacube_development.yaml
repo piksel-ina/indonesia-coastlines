@@ -1,0 +1,46 @@
+input:
+  grid_path: "data/raw/indonesia_tiles.geojson"
+  modifications_path: "data/raw/empty_modifications.geojson"
+  geomorphology_path: "https://s3.ap-southeast-2.amazonaws.com/files.auspatious.com/coastlines/coastal_geomorphology.zip"
+
+output:
+  location: "data/processed/"
+  crs: "EPSG:32651"
+
+options:
+  start_year: 2020
+  end_year: 2023
+  baseline_year: 2021
+
+  tide_model: "FES2022"
+
+  water_index: "mndwi_nir"
+  index_threshold: 0.65
+
+  mask_with_hillshade: True
+  hillshade_stac_catalog: "https://earth-search.aws.element84.com/v1"
+  hillshade_stac_collection: "cop-dem-glo-30"
+  
+  use_ensemble: False
+  # ensemble_model_list: 
+  #   - "FES2014"
+  #   - "FES2022"
+  #   - "EOT20"
+  #   - "TPXO9-atlas-v5-nc"
+  #   - "TPXO10-atlas-v2-nc"
+  #   - "GOT5.6"
+  # ensemble_model_rankings: "https://files.auspatious.com/coastlines/indo_model_rankings2.fgb"
+
+  mask_with_esa_wc: True
+
+  load_buffer_distance: 5000
+
+
+  lower_scene_limit: 250
+  upper_scene_limit: 2000
+
+aws:
+  aws_unsigned: False
+  aws_request_payer: True
+
+use_datacube: True

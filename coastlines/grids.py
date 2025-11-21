@@ -3,7 +3,9 @@ from odc.geo.gridspec import GridSpec
 
 # numbers
 ONE_TWO_FIVE_MILLION = 1_250_000
+TWO_MILLION = 2_000_000
 SIX_TWO_FIVE_MILLION = 6_250_000
+EIGHT_MILLION = 8_000_000
 TEN_MILLION = 10_000_000
 
 # Vietnam-related grids
@@ -35,20 +37,27 @@ PHILIPPINES_10 = GridSpec(
     origin=XY(-TEN_MILLION, -TEN_MILLION),
 )
 
-# Indonesion-related grids
+# Indonesian-related grids
 
-INDONESIA_CRS = "EPSG:3832"
+INDONESIA_CRS="ESRI:54034"
 
 INDONESIA_25 = GridSpec(
     crs=INDONESIA_CRS,
     tile_shape=(2000, 2000),
     resolution=25,
-    origin=XY(-SIX_TWO_FIVE_MILLION, -ONE_TWO_FIVE_MILLION),
+    origin=XY(EIGHT_MILLION, -TWO_MILLION),
 )
 
 INDONESIA_10 = GridSpec(
     crs=INDONESIA_CRS,
     tile_shape=(5000, 5000),
     resolution=10,
+    origin=XY(-SIX_TWO_FIVE_MILLION, -ONE_TWO_FIVE_MILLION),
+)
+
+INDONESIA_10KM = GridSpec(
+    crs=INDONESIA_CRS,
+    tile_shape=(5000, 5000),
+    resolution=2,
     origin=XY(-SIX_TWO_FIVE_MILLION, -ONE_TWO_FIVE_MILLION),
 )

@@ -15,8 +15,6 @@ class Output(BaseModel):
 class CoastlinesSTAC(BaseModel):
     stac_api_url: str
     stac_collections: list[str]
-    lower_scene_limit: int
-    upper_scene_limit: int
 
 
 class AWS(BaseModel):
@@ -49,13 +47,16 @@ class CoastlinesOptions(BaseModel):
     tide_centre: float = 0.0
     load_buffer_distance: int = 5000
 
+    lower_scene_limit: int
+    upper_scene_limit: int
+
 
 class CoastlinesConfig(BaseModel):
     input: CoastlinesInput
     output: Output
     options: CoastlinesOptions
 
-    virtual_product: bool | None = None
+    use_datacube: bool | None = None
     stac: CoastlinesSTAC | None = None
     aws: AWS | None = None
 

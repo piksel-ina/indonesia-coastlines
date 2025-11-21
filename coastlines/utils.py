@@ -14,6 +14,8 @@ from s3path import S3Path
 from xarray import Dataset
 from yaml import safe_load
 
+from odc.geo.gridspec import GridSpec, GeoBox
+
 from coastlines.config import CoastlinesConfig
 from coastlines.config import IntertidalConfig
 
@@ -80,7 +82,7 @@ def load_json(grid_path: str) -> GeoDataFrame:
     return gridcell_gdf
 
 
-def get_study_site_geometry(grid_path: str, study_area: str) -> gpd.GeoDataFrame:
+def get_study_site_geometry(grid_path: str, study_area: str) -> GeoDataFrame:
     # Grid cells used to process the analysis
     gridcell_gdf = load_json(grid_path)
     try:
@@ -91,6 +93,19 @@ def get_study_site_geometry(grid_path: str, study_area: str) -> gpd.GeoDataFrame
         ) from e
 
     return gridcell_gdf
+
+
+def get_study_geobox_from_grid(study_area: str, gridspec: GridSpec) -> GeoBox:
+    return gridspec.tile_geobox(tile_index=study_area)
+
+
+def get_study_geometry_from_grid(study_area: str, gridspec: GridSpec, buffer: int | float | None = None) -> GeoDataFrame:
+    geobox = gridspec.tile_geobox(tile_index=study_area)
+    
+    if buffer is not None:
+        geobox = geobox.buffer(buffer)
+
+    return gpd.GeoDataFrame(geometry=[geobox.geographic_extent], crs=4326)
 
 
 def get_esa_water(combined_ds: Dataset):
