@@ -34,7 +34,7 @@ to find and load data from STAC APIs from the USGS and the Microsoft Planetary C
 Clone the `coastlines` repository and checkout the `main` branch:
 
 ``` bash
-git clone https://github.com/auspatious/coastlines.git
+git clone https://github.com/piksel-ina/Indonesia-coastlines.git
 ```
 
 #### Tidal model
