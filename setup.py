@@ -49,7 +49,7 @@ REQUIRED = [
     "tqdm>=4.66.3",
     "xarray",
     "pyyaml",
-    "dea_intertidal @ git+https://github.com/GeoscienceAustralia/dea-intertidal.git",
+    "dea-intertidal",
     "dep-tools @ git+https://github.com/digitalearthpacific/dep-tools.git",
 ]
 

@@ -204,9 +204,9 @@ datacube[performance,s3]==1.9.5
     #   odc-ui
 datacube-ows==1.9.0
     # via dea-tools
-dea-intertidal @ git+https://github.com/GeoscienceAustralia/dea-intertidal.git
+dea-intertidal==2.4.0
     # via coastlines (setup.py)
-dea-tools==0.3.6
+dea-tools==0.4.7
     # via
     #   coastlines (setup.py)
     #   dea-intertidal
@@ -232,7 +232,7 @@ distributed==2025.4.0
     #   odc-algo
 docutils==0.16
     # via awscli
-eo-tides==0.6.4
+eo-tides==0.10.1
     # via
     #   coastlines (setup.py)
     #   dea-intertidal
@@ -240,7 +240,7 @@ eodatasets3==1.9.3
     # via dea-intertidal
 executing==2.2.0
     # via stack-data
-fiona==1.9.6
+fiona==1.10.0
     # via
     #   coastlines (setup.py)
     #   dea-tools
@@ -262,7 +262,7 @@ frozenlist==1.4.1
     # via
     #   aiohttp
     #   aiosignal
-fsspec==2025.3.2
+fsspec==2024.9.0.*
     # via
     #   dask
     #   datacube-ows
@@ -395,7 +395,7 @@ markupsafe==2.1.5
     #   jinja2
     #   mako
     #   werkzeug
-matplotlib==3.9.0
+matplotlib==3.9.2
     # via
     #   coastlines (setup.py)
     #   datacube-ows
@@ -482,7 +482,7 @@ numpy==1.26.4
     #   timescale
     #   timezonefinder
     #   xarray
-odc-algo==0.2.3
+odc-algo==1.1.1
     # via
     #   dea-intertidal
     #   dep-tools
@@ -533,7 +533,7 @@ packaging==24.0
     #   scikit-image
     #   setuptools-scm
     #   xarray
-pandas==2.2.2
+pandas==2.2.3
     # via
     #   bokeh
     #   coastlines (setup.py)
@@ -679,7 +679,7 @@ python-geohash==0.8.5
     # via coastlines (setup.py)
 python-slugify==8.0.4
     # via datacube-ows
-pytmd==2.2.2
+pytmd==2.2.8
     # via
     #   coastlines (setup.py)
     #   dea-tools
@@ -762,7 +762,7 @@ ruamel-yaml==0.18.10
     #   eodatasets3
 ruamel-yaml-clib==0.2.12
     # via ruamel-yaml
-s3fs==0.4.2
+s3fs==2024.9.0
     # via dea-intertidal
 s3path==0.5.7
     # via coastlines (setup.py)
@@ -770,7 +770,7 @@ s3transfer==0.10.1
     # via
     #   awscli
     #   boto3
-scikit-image==0.23.2
+scikit-image==0.24.0
     # via
     #   coastlines (setup.py)
     #   dea-intertidal
@@ -861,7 +861,7 @@ tifffile==2024.5.22
     #   dask-image
     #   pims
     #   scikit-image
-timescale==0.0.6
+timescale==0.0.8
     # via
     #   eo-tides
     #   pytmd
@@ -880,7 +880,7 @@ tornado==6.4
     #   bokeh
     #   dask-gateway
     #   distributed
-tqdm==4.66.4
+tqdm==4.66.5
     # via
     #   coastlines (setup.py)
     #   dea-intertidal
@@ -926,7 +926,7 @@ wrapt==1.16.0
     # via
     #   deprecat
     #   smart-open
-xarray==2024.5.0
+xarray==2024.9.0
     # via
     #   coastlines (setup.py)
     #   datacube
