@@ -1,11 +1,11 @@
 input:
-  grid_path: "data/raw/indonesia_tiles.geojson"
-  modifications_path: "data/raw/empty_modifications.geojson"
+  grid_path: "https://raw.githubusercontent.com/piksel-ina/Indonesia-coastlines/main/data/raw/indonesia_10km_tiles_coast.geojson"
+  modifications_path: "https://raw.githubusercontent.com/piksel-ina/Indonesia-coastlines/main/data/raw/empty_modifications.geojson"
   geomorphology_path: "https://s3.ap-southeast-2.amazonaws.com/files.auspatious.com/coastlines/coastal_geomorphology.zip"
 
 output:
   location: "data/processed/"
-  crs: "EPSG:32651"
+  crs: "EPSG:4326"
 
 options:
   start_year: 2020
@@ -14,8 +14,8 @@ options:
 
   tide_model: "FES2022"
 
-  water_index: "mndwi_nir"
-  index_threshold: 0.65
+  water_index: "combined"
+  index_threshold: 0.0
 
   mask_with_hillshade: True
   hillshade_stac_catalog: "https://earth-search.aws.element84.com/v1"
