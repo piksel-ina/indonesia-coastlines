@@ -45,7 +45,7 @@ class CoastlinesOptions(BaseModel):
     use_combined_index: bool = False
 
     tide_centre: float = 0.0
-    load_buffer_distance: int = 5000
+    load_buffer_distance: float = 5000
 
     lower_scene_limit: int
     upper_scene_limit: int

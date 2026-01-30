@@ -12,7 +12,8 @@ from datacube.utils.dask import start_local_dask
 from dea_tools.spatial import hillshade, subpixel_contours
 from eo_tides.eo import pixel_tides
 from odc.algo import mask_cleanup, to_f32
-from odc.geo.geobox import GeoBox
+from shapely.geometry import box
+from odc.geo.geom import Geometry
 from odc.stac import configure_s3_access, load
 from pystac_client import Client
 from s3path import S3Path
@@ -114,7 +115,7 @@ def get_output_path(
 
 
 def stac_load(
-    geobox: GeoBox, bands: Iterable[str], config: CoastlinesConfig
+    geopolygon: Geometry, bands: Iterable[str], config: CoastlinesConfig
 ) -> Tuple[xr.Dataset, dict[str, Suninfo]]:
     lower_limit = config.options.lower_scene_limit
     upper_limit = config.options.upper_scene_limit
@@ -127,7 +128,7 @@ def stac_load(
     query = {
         "collections": config.stac.stac_collections,
         "datetime": datetime,
-        "intersects": geobox.geographic_extent,
+        "intersects": geopolygon,
     }
     query_filter = {"landsat:collection_category": {"in": ["T1"]}}
     search = client.search(
@@ -203,7 +204,7 @@ def stac_load(
 
 
 def datacube_load(
-    geobox: GeoBox, bands: Iterable[str], config: CoastlinesConfig
+    geopolygon: Geometry, bands: Iterable[str], config: CoastlinesConfig
 ) -> xr.Dataset:
     dc = Datacube()
 
@@ -216,7 +217,7 @@ def datacube_load(
         product=["ls5_c2l2_sr", "ls7_c2l2_sr", "ls8_c2l2_sr", "ls9_c2l2_sr"],
         collection_category=["T1"],
         time=time_query,
-        geopolygon=geobox.geographic_extent,
+        geopolygon=geopolygon,
     )
 
     print(f"Found {len(datasets)} datasets")
@@ -229,7 +230,7 @@ def datacube_load(
             product=["ls5_c2l2_sr", "ls7_c2l2_sr", "ls8_c2l2_sr", "ls9_c2l2_sr"],
             collection_category=["T2"],
             time=time_query,
-            geopolygon=geobox.geographic_extent,
+            geopolygon=geopolygon,
         )
 
     if len(datasets) < config.options.lower_scene_limit:
@@ -250,7 +251,7 @@ def datacube_load(
 
     ds = dc.load(
         datasets=datasets,
-        geopolygon=geobox.geographic_extent,
+        geopolygon=geopolygon,
         measurements=bands,
         output_crs=epsg_code,
         resolution=30,
@@ -265,7 +266,7 @@ def datacube_load(
 
 def load_and_mask_data(
     config: CoastlinesConfig,
-    geobox: GeoBox,
+    geopolygon: Geometry,
     include_nir: bool = False,
     include_awei: bool = False,
     include_wi: bool = False,
@@ -290,13 +291,12 @@ def load_and_mask_data(
     if include_wi:
         bands.append("red")
 
-    geobox = geobox.buffered(config.options.load_buffer_distance)
     if use_datacube:
         print("Loading with datacube")
-        ds, suninfo_by_day, meta = datacube_load(geobox=geobox, bands=bands, config=config)
+        ds, suninfo_by_day, meta = datacube_load(geopolygon=geopolygon, bands=bands, config=config)
     else:
         print("Loading with stac")
-        ds, suninfo_by_day, meta = stac_load(geobox=geobox, bands=bands, config=config)
+        ds, suninfo_by_day, meta = stac_load(geopolygon=geopolygon, bands=bands, config=config)
 
     # Get the nodata mask, just for the two main bands
     nodata_mask = (ds.green == 0) | (ds.swir16 == 0)
@@ -759,23 +759,15 @@ def process_coastlines(
     # Either use the MNDWI index or the combined index
     log.info(f"Using water index: {config.options.water_index}")
 
-    query = {
-        "bbox": bbox,
-        "datetime": f"{config.options.start_year - 1}/{config.options.end_year + 1}",
-    }
 
     # Loading data
-    data = None
-    if config.stac is not None:
-        data, items = load_and_mask_data(
+    data, items = load_and_mask_data(
             config,
-            query,
+            geopolygon=Geometry(box(*bbox), crs="epsg:4326"),
             include_nir=config.options.include_nir,
         )
 
-        log.info(f"Found {len(items)} items to load.")
-    else:
-        raise NotImplementedError("Only STAC loading is currently supported")
+    log.info(f"Found {len(items)} items to load.")
 
     # Calculate tides and combine with the data
     log.info("Filtering by tides")

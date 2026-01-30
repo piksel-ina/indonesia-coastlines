@@ -33,7 +33,7 @@ options:
 
   mask_with_esa_wc: True
 
-  load_buffer_distance: 5000
+  load_buffer_distance: 0.01  # in degrees, ~1km; unit depends on the CRS
 
 
   lower_scene_limit: 250
