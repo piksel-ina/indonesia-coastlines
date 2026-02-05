@@ -215,7 +215,7 @@ def datacube_load(
 
     datasets = dc.find_datasets(
         product=["ls5_c2l2_sr", "ls7_c2l2_sr", "ls8_c2l2_sr", "ls9_c2l2_sr"],
-        collection_category=["T1"],
+        landsat_collection_category=["T1"],
         time=time_query,
         geopolygon=geopolygon,
     )
@@ -228,7 +228,7 @@ def datacube_load(
         )
         datasets += dc.find_datasets(
             product=["ls5_c2l2_sr", "ls7_c2l2_sr", "ls8_c2l2_sr", "ls9_c2l2_sr"],
-            collection_category=["T2"],
+            landsat_collection_category=["T2"],
             time=time_query,
             geopolygon=geopolygon,
         )
