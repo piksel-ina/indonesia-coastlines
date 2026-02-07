@@ -9,12 +9,13 @@ import geopandas as gpd
 import xarray as xr
 from datacube import Datacube
 from datacube.utils.dask import start_local_dask
+from datacube.utils.aws import configure_s3_access
 from dea_tools.spatial import hillshade, subpixel_contours
 from eo_tides.eo import pixel_tides
 from odc.algo import mask_cleanup, to_f32
 from shapely.geometry import box
 from odc.geo.geom import Geometry
-from odc.stac import configure_s3_access, load
+from odc.stac import load
 import datacube.utils as dc_utils
 from pystac_client import Client
 from s3path import S3Path
@@ -980,7 +981,7 @@ def cli(
 
     log.info("Configuring S3 access")
     # Do an opinionated configuration of S3 for data reading
-    dc_utils.aws.configure_s3_access(
+    configure_s3_access(
         cloud_defaults=True,
         aws_unsigned=config.aws.aws_unsigned,
         requester_pays=config.aws.aws_request_payer,
