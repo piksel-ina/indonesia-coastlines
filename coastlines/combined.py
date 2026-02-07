@@ -16,7 +16,6 @@ from odc.algo import mask_cleanup, to_f32
 from shapely.geometry import box
 from odc.geo.geom import Geometry
 from odc.stac import load
-import datacube.utils as dc_utils
 from pystac_client import Client
 from s3path import S3Path
 from datacube.api.query import solar_day
