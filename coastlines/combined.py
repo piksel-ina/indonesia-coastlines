@@ -15,6 +15,7 @@ from odc.algo import mask_cleanup, to_f32
 from shapely.geometry import box
 from odc.geo.geom import Geometry
 from odc.stac import configure_s3_access, load
+import datacube.utils as dc_utils
 from pystac_client import Client
 from s3path import S3Path
 from datacube.api.query import solar_day
@@ -979,7 +980,7 @@ def cli(
 
     log.info("Configuring S3 access")
     # Do an opinionated configuration of S3 for data reading
-    configure_s3_access(
+    dc_utils.aws.configure_s3_access(
         cloud_defaults=True,
         aws_unsigned=config.aws.aws_unsigned,
         requester_pays=config.aws.aws_request_payer,
