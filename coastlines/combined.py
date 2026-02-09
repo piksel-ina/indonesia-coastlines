@@ -1,3 +1,4 @@
+import os
 import sys
 from collections import Counter, namedtuple
 from concurrent.futures import ThreadPoolExecutor
@@ -793,6 +794,7 @@ def process_coastlines(
             AWS_DEFAULT_REGION="us-west-2",
             AWS_S3_ENDPOINT="s3.us-west-2.amazonaws.com",
         ):
+            print(f"Deeper environment: {os.environ}")
             data = data.compute()
 
     log.info("Running per-pixel tide masking at high resolution")
@@ -985,7 +987,10 @@ def cli(
         cloud_defaults=True,
         aws_unsigned=config.aws.aws_unsigned,
         requester_pays=config.aws.aws_request_payer,
+        region_name="us-west-2"
     )
+
+    print(f"Environment variables: {os.environ}")
 
     log.info("Starting Dask")
     # Set up Dask
