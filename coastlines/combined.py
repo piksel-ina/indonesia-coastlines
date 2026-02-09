@@ -788,7 +788,11 @@ def process_coastlines(
 
     if load_early:
         log.info("Loading daily dataset into memory")
-        with rasterio.Env(AWS_REGION="us-west-2"):
+        with rasterio.Env(
+            AWS_REGION="us-west-2",
+            AWS_DEFAULT_REGION="us-west-2",
+            AWS_S3_ENDPOINT="s3.us-west-2.amazonaws.com",
+        ):
             data = data.compute()
 
     log.info("Running per-pixel tide masking at high resolution")
