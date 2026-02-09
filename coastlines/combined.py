@@ -2,13 +2,11 @@ import os
 import sys
 from collections import Counter, namedtuple
 from concurrent.futures import ThreadPoolExecutor
-from logging import config, log
 from pathlib import Path
 from typing import Iterable, Tuple, Union
 
 import click
 import geopandas as gpd
-import rasterio
 import xarray as xr
 from datacube import Datacube
 from datacube.api.query import solar_day
@@ -789,13 +787,7 @@ def process_coastlines(
 
     if load_early:
         log.info("Loading daily dataset into memory")
-        with rasterio.Env(
-            AWS_REGION="us-west-2",
-            AWS_DEFAULT_REGION="us-west-2",
-            AWS_S3_ENDPOINT="s3.us-west-2.amazonaws.com",
-        ):
-            print(f"Deeper environment: {os.environ}")
-            data = data.compute()
+        data = data.compute()
 
     log.info("Running per-pixel tide masking at high resolution")
     data = mask_pixels_by_tide(
@@ -987,7 +979,12 @@ def cli(
         cloud_defaults=True,
         aws_unsigned=config.aws.aws_unsigned,
         requester_pays=config.aws.aws_request_payer,
-        region_name="us-west-2"
+        region_name="us-west-2",
+        gdal_opts={
+            "AWS_REGION": "us-west-2",
+            "AWS_DEFAULT_REGION": "us-west-2",
+            "AWS_S3_ENDPOINT": "s3.us-west-2.amazonaws.com",
+        },
     )
 
     print(f"Environment variables: {os.environ}")
