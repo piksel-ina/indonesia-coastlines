@@ -1510,6 +1510,8 @@ def generate_hotspots(
             axis=1,
         )
 
+        print(f"Rate out: {rate_out.head()}")
+
         # Add rates of change back into dataframe
         hotspot_values[
             ["rate_time", "incpt_time", "sig_time", "se_time", "outl_time"]
