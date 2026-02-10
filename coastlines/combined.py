@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 from collections import Counter, namedtuple
@@ -755,6 +756,7 @@ def process_coastlines(
         .bounds.values[0]
     )
     log.info(f"Using bounding box: {bbox}")
+    odc_geom = Geometry(json.loads(geometry.to_json()), crs=geometry.crs)
 
     # Either use the MNDWI index or the combined index
     log.info(f"Using water index: {config.options.water_index}")
@@ -762,7 +764,7 @@ def process_coastlines(
     # Loading data
     data, items = load_and_mask_data(
         config,
-        geopolygon=geometry,
+        geopolygon=odc_geom,
         include_nir=config.options.include_nir,
         use_datacube=config.use_datacube,
     )
