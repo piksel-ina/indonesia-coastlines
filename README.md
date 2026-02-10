@@ -31,10 +31,33 @@ to find and load data from STAC APIs from the USGS and the Microsoft Planetary C
 
 ### Getting started
 
+#### How to install indonesia-coastlines
+
 Clone the `coastlines` repository and checkout the `main` branch:
 
 ``` bash
-git clone https://github.com/auspatious/coastlines.git
+git clone https://github.com/piksel-ina/indonesia-coastlines.git
+```
+
+Move to the `indonesia-coastlines` directory and create a new environment using uv:
+
+``` bash
+cd indonesia-coastlines
+uv venv
+```
+
+Activate the environment and install the `indonesia-coastlines` package:
+
+``` bash
+source .venv/bin/activate
+uv pip install -e .
+```
+
+If you want to use Jupyter Notebooks, install the `ipykernel` package and add the `coastlines` environment to your Jupyter kernels:
+
+``` bash
+uv pip install ipykernel
+python -m ipykernel install --user --name=coastlines --display-name "Python (indonesia-coastlines)"
 ```
 
 #### Tidal model
