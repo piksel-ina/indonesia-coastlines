@@ -29,13 +29,55 @@ coastline intertidal area (the area between the low and high tides) using both L
 Code in this repository works using [odc-stac](https://github.com/opendatacube/odc-stac)
 to find and load data from STAC APIs from the USGS and the Microsoft Planetary Computer.
 
+## Manage Development Environment
+
+### Environment Setup using uv
+
+1. **Clone the repository**
+
+    Clone the `indonesia-coastlines` repository:
+
+    ```bash
+    git clone https://github.com/piksel-ina/indonesia-coastlines.git
+    cd indonesia-coastlines
+    ```
+
+2. **Create a new environment using uv**
+
+    Move to the repository directory and create a new environment using `uv`, then activate the environment:
+
+    ```bash
+    cd indonesia-coastlines
+    uv venv
+    source .venv/bin/activate
+    ```
+
+3. **Install required packages**
+
+   Install the required packages for `indonesia-coastlines`:
+
+    ```bash
+    uv pip install -e .
+    ```
+
+4. **Install the ipykernel package**
+
+   Install the `ipykernel` package and register it to use the Jupyter notebooks:
+
+    ```bash
+    uv pip install ipykernel
+    python -m ipykernel install --user --name=coastlines --display-name "Python (indonesia-coastlines)"
+    ```
+
+5. **Deactivate the environment**
+
+   When you are done working in the environment, you can deactivate it:
+
+    ```bash
+    deactivate
+    ```
+
 ### Getting started
-
-Clone the `coastlines` repository and checkout the `main` branch:
-
-``` bash
-git clone https://github.com/auspatious/coastlines.git
-```
 
 #### Tidal model
 
