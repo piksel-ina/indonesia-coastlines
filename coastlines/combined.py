@@ -974,17 +974,17 @@ def cli(
         raise ValueError("Cannot set both aws_unsigned and aws_request_payer to True")
 
     log.info("Configuring S3 access")
+
+    # Unset AWS_REGION, AWS_DEFAULT_REGION
+    os.environ.pop("AWS_REGION", None)
+    os.environ.pop("AWS_DEFAULT_REGION", None)
+
     # Do an opinionated configuration of S3 for data reading
     configure_s3_access(
         cloud_defaults=True,
         aws_unsigned=config.aws.aws_unsigned,
         requester_pays=config.aws.aws_request_payer,
         region_name="us-west-2",
-        gdal_opts={
-            "AWS_REGION": "us-west-2",
-            "AWS_DEFAULT_REGION": "us-west-2",
-            "AWS_S3_ENDPOINT": "s3.us-west-2.amazonaws.com",
-        },
     )
 
     print(f"Environment variables: {os.environ}")
