@@ -18,7 +18,6 @@ from odc.geo.geom import Geometry
 from odc.stac import configure_s3_access, load
 from pystac_client import Client
 from s3path import S3Path
-from shapely.geometry import box
 
 from coastlines.config import CoastlinesConfig
 
