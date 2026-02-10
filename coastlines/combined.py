@@ -763,7 +763,7 @@ def process_coastlines(
     # Loading data
     data, items = load_and_mask_data(
         config,
-        geopolygon=Geometry(box(*bbox), crs="epsg:4326"),
+        geopolygon=geometry,
         include_nir=config.options.include_nir,
         use_datacube=config.use_datacube,
     )

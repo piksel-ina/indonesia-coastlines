@@ -1498,7 +1498,12 @@ def generate_hotspots(
         # within each buffered polygon
         hotspot_values = hotspot_grouped.median(numeric_only=True).round(2)
 
-        print(f"Hotspot values: {hotspot_values.head()}")
+        # Check if there are no hotspots
+        if hotspot_values.empty:
+            raise CoastlinesException(
+                f"No hotspots found for radius {radius} m. Consider increasing the radius or checking the input data."
+            )
+
 
         # Extract year from distance columns (remove "dist_")
         x_years = hotspot_values.columns.str.replace("dist_", "").astype(int)
@@ -1511,8 +1516,6 @@ def generate_hotspots(
             ),
             axis=1,
         )
-
-        print(f"Rate out: {rate_out.head()}")
 
         # Add rates of change back into dataframe
         hotspot_values[
