@@ -69,7 +69,7 @@ class IntertidalInput(BaseModel):
 
 class IntertidalSTAC(BaseModel):
     stac_api_url: str
-    stac_collections: dict[str,str]
+    stac_collections: dict[str, str]
 
 
 class IntertidalOptions(BaseModel):
@@ -87,6 +87,7 @@ class IntertidalOptions(BaseModel):
     modelled_freq: str = "3h"
 
     use_https_href_links: bool = True
+
 
 class IntertidalConfig(BaseModel):
     input: IntertidalInput

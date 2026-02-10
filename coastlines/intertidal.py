@@ -205,6 +205,7 @@ def get_exposure(
 
     return ds, modelledtides_ds
 
+
 def split_s3_path(s3_path):
     path_parts = s3_path.replace("s3://", "").split("/")
     bucket = path_parts.pop(0)
@@ -226,7 +227,7 @@ def process_intertidal(
         "qa_ndwi_freq": (np.uint8, 255),
         "qa_count_clear": (np.int16, -999),
     }
-        
+
     # Study site geometry and config parsing
     studyarea_gdf = get_study_site_geometry(config.input.grid_path, study_area)
     geom = Geometry(studyarea_gdf.loc[study_area].geometry, crs=studyarea_gdf.crs)
@@ -287,7 +288,7 @@ def process_intertidal(
             lot_hot=False,
             lat_hat=False,
         )
- 
+
         # Set spread and offset data types
         custom_dtypes["exposure"] = (np.uint8, 255)
         custom_dtypes["ta_spread"] = (np.uint8, 255)
@@ -296,11 +297,13 @@ def process_intertidal(
 
     else:
         log.info(f"{run_id}: Skipping Exposure and spread/offsets calculation")
-    
+
     # Prepare data for export
     ds["qa_ndwi_freq"] *= 100  # Convert frequency to %
-    ds = prepare_for_export(ds, custom_dtypes=custom_dtypes)  # sets correct dtypes and nodata
-    
+    ds = prepare_for_export(
+        ds, custom_dtypes=custom_dtypes
+    )  # sets correct dtypes and nodata
+
     aws_client = boto3.client("s3")
 
     bucket, bucket_prefix = split_s3_path(output_location)
@@ -325,7 +328,9 @@ def process_intertidal(
             # This is an exit with success
             sys.exit(0)
         else:
-            log.info(f"{run_id}: Item does not exist at {stac_document}, proceeding to write.")
+            log.info(
+                f"{run_id}: Item does not exist at {stac_document}, proceeding to write."
+            )
 
     # Write externally
     output_data = set_stac_properties(ndwi, ds)

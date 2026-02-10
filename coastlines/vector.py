@@ -542,15 +542,15 @@ def points_certainty(
     ] = f"extreme value (> {rate_of_change_threshold} m)"
 
     # Flag points where change does not fall on a line
-    points_gdf.loc[
-        points_gdf.angle_std > angle_threshold, "certainty"
-    ] = "high angular variability"
+    points_gdf.loc[points_gdf.angle_std > angle_threshold, "certainty"] = (
+        "high angular variability"
+    )
 
     # Flag shorelines with less than X valid shorelines
     valid_obs_thresh = int(points_gdf.columns.str.contains("dist_").sum() * 0.75)
-    points_gdf.loc[
-        points_gdf.valid_obs < valid_obs_thresh, "certainty"
-    ] = "insufficient observations"
+    points_gdf.loc[points_gdf.valid_obs < valid_obs_thresh, "certainty"] = (
+        "insufficient observations"
+    )
 
     return points_gdf
 
@@ -750,8 +750,7 @@ def contours_preprocess(
         # Mask out inland regions (i.e. values of 2 in `coastal_mask`)
         .where(coastal_mask != 2)
         # Keep pixels directly connected to ocean in each timestep
-        .groupby("year")
-        .map(
+        .groupby("year").map(
             func=ocean_masking,
             ocean_da=ocean_da,
             connectivity=1,
@@ -1193,9 +1192,9 @@ def calculate_regressions(points_gdf):
         ),
         axis=1,
     )
-    points_gdf[
-        ["rate_time", "incpt_time", "sig_time", "se_time", "outl_time"]
-    ] = rate_out
+    points_gdf[["rate_time", "incpt_time", "sig_time", "se_time", "outl_time"]] = (
+        rate_out
+    )
 
     # Copy slope and intercept into points_subset so they can be
     # used to temporally de-trend annual distances
@@ -1504,7 +1503,6 @@ def generate_hotspots(
                 f"No hotspots found for radius {radius} m. Consider increasing the radius or checking the input data."
             )
 
-
         # Extract year from distance columns (remove "dist_")
         x_years = hotspot_values.columns.str.replace("dist_", "").astype(int)
 
@@ -1537,9 +1535,9 @@ def generate_hotspots(
         # hotspots radius by 30 m along-shore rates of change point distance)
         hotspots_gdf["n"] = hotspot_grouped.size()
         hotspots_gdf["n"] = hotspots_gdf["n"].fillna(0)
-        hotspots_gdf.loc[
-            hotspots_gdf.n < (radius / 30), "certainty"
-        ] = "insufficient points"
+        hotspots_gdf.loc[hotspots_gdf.n < (radius / 30), "certainty"] = (
+            "insufficient points"
+        )
 
         # Generate a geohash UID for each point and set as index
         uids = (

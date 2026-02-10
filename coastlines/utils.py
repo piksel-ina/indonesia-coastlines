@@ -53,9 +53,11 @@ def configure_logging(name: str = "Coastlines") -> logging.Logger:
     return logger
 
 
-def load_config(config_path: str, config_type: str = "coastlines") -> CoastlinesConfig | IntertidalConfig:
+def load_config(
+    config_path: str, config_type: str = "coastlines"
+) -> CoastlinesConfig | IntertidalConfig:
     """
-    Load a CoastlinesConfig or IntertidalConfigobject from a YAML 
+    Load a CoastlinesConfig or IntertidalConfigobject from a YAML
     configuration file.
 
     Parameters:
@@ -63,17 +65,18 @@ def load_config(config_path: str, config_type: str = "coastlines") -> Coastlines
         config_type (str): The type of config.  Can be 'coastline' or 'intertidal'
 
     Returns:
-        CoastlinesConfig: The loaded CoastlinesConfig object OR 
+        CoastlinesConfig: The loaded CoastlinesConfig object OR
         IntertidalConfig: The loaded IntertidalConfig object
     """
     with fsspec.open(config_path, mode="r") as f:
         loaded = safe_load(f)
         if config_type == "coastlines":
-            config =  CoastlinesConfig(**loaded)
+            config = CoastlinesConfig(**loaded)
         else:
             config = IntertidalConfig(**loaded)
 
         return config
+
 
 def load_json(grid_path: str) -> GeoDataFrame:
     gridcell_gdf = gpd.read_file(grid_path).to_crs(epsg=4326).set_index("id")
@@ -99,9 +102,11 @@ def get_study_geobox_from_grid(study_area: str, gridspec: GridSpec) -> GeoBox:
     return gridspec.tile_geobox(tile_index=study_area)
 
 
-def get_study_geometry_from_grid(study_area: str, gridspec: GridSpec, buffer: int | float | None = None) -> GeoDataFrame:
+def get_study_geometry_from_grid(
+    study_area: str, gridspec: GridSpec, buffer: int | float | None = None
+) -> GeoDataFrame:
     geobox = gridspec.tile_geobox(tile_index=study_area)
-    
+
     if buffer is not None:
         geobox = geobox.buffer(buffer)
 
@@ -143,7 +148,7 @@ def parallel_apply(ds, dim, func, use_threads=False, *args, **kwargs):
     Temporarily copied until this PR is merged and a new release made:
     https://github.com/GeoscienceAustralia/dea-notebooks/pull/1171
     """
-        
+
     """
     Applies a custom function in parallel along the dimension of an
     xarray.Dataset or xarray.DataArray.
@@ -326,6 +331,7 @@ def extract_contours(
     contour_gdf = contour_gdf.set_index("year")
 
     return contour_gdf
+
 
 click_config_path = click.option(
     "--config-path",

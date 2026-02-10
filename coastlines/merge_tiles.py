@@ -22,6 +22,7 @@ from coastlines.utils import (
 
 from coastlines.vector import generate_hotspots
 
+
 def list_files_s3(input_location: str, suffix: str):
     input_location = input_location.lower()
     if input_location.startswith("s3://"):
@@ -167,9 +168,7 @@ def write_files(
             )
 
         # Handy built-in styles
-        styles = read_file(
-            STYLES_FILE, GEOM_POSSIBLE_NAMES="geometry"
-        )
+        styles = read_file(STYLES_FILE, GEOM_POSSIBLE_NAMES="geometry")
         styles.to_file(temp_geopackage, layer="layer_styles", driver="GPKG")
 
         # Shift the tempfile to its final destination

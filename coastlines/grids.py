@@ -39,7 +39,7 @@ PHILIPPINES_10 = GridSpec(
 
 # Indonesian-related grids
 
-INDONESIA_CRS="ESRI:54034"
+INDONESIA_CRS = "ESRI:54034"
 
 INDONESIA_25 = GridSpec(
     crs=INDONESIA_CRS,
