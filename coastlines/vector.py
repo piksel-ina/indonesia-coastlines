@@ -1475,7 +1475,7 @@ def generate_hotspots(
     for radius in hotspots_radii:
         # Extract hotspot points
         hotspots_gdf = points_on_line(
-            shorelines_gdf,
+            shorelines_gdf.to_crs("EPSG:6933"),
             index=baseline_year,
             distance=int(radius / 2),
         )
@@ -1497,6 +1497,8 @@ def generate_hotspots(
         # Aggregate/summarise values by taking median of all points
         # within each buffered polygon
         hotspot_values = hotspot_grouped.median(numeric_only=True).round(2)
+
+        print(f"Hotspot values: {hotspot_values.head()}")
 
         # Extract year from distance columns (remove "dist_")
         x_years = hotspot_values.columns.str.replace("dist_", "").astype(int)
