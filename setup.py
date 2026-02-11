@@ -23,7 +23,6 @@ REQUIRED = [
     "dea-tools",
     "eo-tides",
     "Fiona",
-    "gdal==3.12.0.post1",
     "geopandas",
     "matplotlib",
     "mapclassify",

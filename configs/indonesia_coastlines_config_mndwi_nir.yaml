@@ -1,5 +1,5 @@
 input:
-  grid_path: "https://raw.githubusercontent.com/piksel-ina/indonesia-coastlines/main/data/raw/indonesia_10km_tiles_coast.geojson"
+  grid_path: "https://raw.githubusercontent.com/piksel-ina/indonesia-coastlines/main/data/raw/indonesia_25km_tiles_coast.geojson"
   modifications_path: "https://raw.githubusercontent.com/piksel-ina/indonesia-coastlines/main/data/raw/empty_modifications.geojson"
   geomorphology_path: "https://s3.ap-southeast-2.amazonaws.com/files.auspatious.com/coastlines/coastal_geomorphology.zip"
 
@@ -24,21 +24,12 @@ options:
   water_index: "mndwi_nir"
   index_threshold: 0.65
 
+  mask_with_esa_wc: True
   mask_with_hillshade: True
   hillshade_stac_catalog: "https://earth-search.aws.element84.com/v1"
   hillshade_stac_collection: "cop-dem-glo-30"
   
   use_ensemble: False
-  # ensemble_model_list: 
-  #   - "FES2014"
-  #   - "FES2022"
-  #   - "EOT20"
-  #   - "TPXO9-atlas-v5-nc"
-  #   - "TPXO10-atlas-v2-nc"
-  #   - "GOT5.6"
-  # ensemble_model_rankings: "https://files.auspatious.com/coastlines/indo_model_rank.fgb"
-
-  mask_with_esa_wc: True
 
   load_buffer_distance: 1000  # in meters, ~1km; unit depends on the CRS
 
