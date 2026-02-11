@@ -988,8 +988,6 @@ def cli(
         region_name="us-west-2",
     )
 
-    print(f"Environment variables: {os.environ}")
-
     log.info("Starting Dask")
     # Set up Dask
     _ = start_local_dask(n_workers=4, threads_per_worker=8, mem_safety_margin="2G")
