@@ -46,18 +46,30 @@ def find_points_contours(files: Iterable) -> list[list[S3Path], list[S3Path]]:
 
 
 def load_parquet_files(files: list[S3Path] | list[Path], output_crs: str):
+    import concurrent.futures
+    from tqdm import tqdm
+
     data_frames = []
     is_s3 = False
 
     if type(files[0]) is S3Path:
         is_s3 = True
 
-    for file in files:
+    def read_and_transform(file):
         file_string = str(file)
         if is_s3:
             file_string = f"s3:/{file}"
-        df = read_parquet(file_string).to_crs(output_crs)
-        data_frames.append(df)
+        return read_parquet(file_string).to_crs(output_crs)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+        # tqdm progress bar for parallel loading
+        data_frames = list(
+            tqdm(
+                executor.map(read_and_transform, files),
+                total=len(files),
+                desc="Loading files",
+            )
+        )
 
     return GeoDataFrame(pd.concat(data_frames), geometry="geometry")
 
@@ -189,7 +201,14 @@ def write_files(
 @click.command("merge-tiles")
 @click_config_path
 @click_output_version
-def cli(config_path, output_version):
+# Add --local-out flag if we want to write to local instead of s3
+@click.option(
+    "--local-write",
+    is_flag=True,
+    default=False,
+    help="Whether to write the output files to local storage instead of S3.",
+)
+def cli(config_path, output_version, local_write):
     # Set up
     config = load_config(config_path, "coastlines")
     log = configure_logging()
@@ -207,6 +226,17 @@ def cli(config_path, output_version):
     n_contours = len(contours_files)
     n_points = len(points_files)
     log.info(f"Found {n_points} points files and {n_contours} contours files")
+
+    points_ids = [str(f).split("points_")[1].split(".parquet")[0] for f in points_files]
+    contours_ids = [
+        str(f).split("contours_")[1].split(".parquet")[0] for f in contours_files
+    ]
+    if set(points_ids) != set(contours_ids):
+        # Print the mismatching ids for debugging
+        missing_points = set(contours_ids) - set(points_ids)
+        missing_contours = set(points_ids) - set(contours_ids)
+        log.error(f"Missing points files for ids: {missing_points}")
+        log.error(f"Missing contours files for ids: {missing_contours}")
 
     if n_contours != n_points:
         raise CoastlinesException("Number of points and contours files must be equal")
@@ -232,11 +262,15 @@ def cli(config_path, output_version):
     )
 
     log.info("Writing files")
+
+    output_location = config.output.location
+    if local_write:
+        output_location = "./"
     written = write_files(
         rates_of_change,
         shorelines,
         hotspots,
-        config.output.location,
+        output_location,
         output_version,
     )
 
