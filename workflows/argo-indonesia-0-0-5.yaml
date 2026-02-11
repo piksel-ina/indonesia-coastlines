@@ -6,7 +6,7 @@ metadata:
 spec:
   serviceAccountName: argo-workflows-executor
   entrypoint: coastlines-dag
-  parallelism: 60
+  parallelism: 1
   podGC:
     strategy: OnPodSuccess
     deleteDelayDuration: 120s
@@ -26,14 +26,14 @@ spec:
   arguments:
     parameters:
       - name: image-tag
-        value: "0.0.3"
+        value: "0.0.3-4-g2b9a792"
       - name: result-version
         value: "0.0.5"
       - name: tiles-subset
         # value: '[\"1955,62\",\"1956,62\",\"1957,62\",\"1958,62\",\"1959,62\",\"1965,62\",\"1966,62\",\"1952,63\",\"1953,63\",\"1954,63\",\"1955,63\",\"1956,63\",\"1959,63\",\"1960,63\",\"1961,63\",\"1962,63\",\"1963,63\",\"1964,63\",\"1965,63\",\"1966,63\",\"1952,64\",\"1953,64\",\"1954,64\",\"1964,64\",\"1965,64\"]' # Can be [] for all tiles or '[\"1965,62\",\"1953,69\"]'
         value: '[]'
       - name: config
-        value: "https://raw.githubusercontent.com/piksel-ina/indonesia-coastlines/refs/heads/main/configs/indonesia_coastlines_config_mndwi_nir.yaml"
+        value: "https://raw.githubusercontent.com/piksel-ina/indonesia-coastlines/refs/heads/main/configs/indonesia_coastlines_config_25_mndwi_nir.yaml"
       - name: overwrite
         value: "--no-overwrite"
   templates:
@@ -107,27 +107,11 @@ spec:
         imagePullPolicy: IfNotPresent
         resources:
           requests:
-<<<<<<< HEAD
-<<<<<<< HEAD
             memory: 64Gi
             cpu: 8.0
           limits:
             cpu: 12.0
             memory: 80Gi
-=======
-            memory: 32Gi
-            cpu: 4.0
-          limits:
-            cpu: 8.0
-            memory: 40Gi
->>>>>>> da02092 (Set up 25 km grid run)
-=======
-            memory: 64Gi
-            cpu: 8.0
-          limits:
-            cpu: 12.0
-            memory: 80Gi
->>>>>>> ea4c51e (UPdate dockerfile)
         command: [bash, -c]
         args:
           - |

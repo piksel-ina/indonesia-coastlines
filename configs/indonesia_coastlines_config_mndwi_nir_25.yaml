@@ -1,5 +1,5 @@
 input:
-  grid_path: "https://raw.githubusercontent.com/piksel-ina/indonesia-coastlines/main/data/raw/indonesia_10km_tiles_coast.geojson"
+  grid_path: "https://raw.githubusercontent.com/piksel-ina/indonesia-coastlines/main/data/raw/indonesia_25km_tiles_coast.geojson"
   modifications_path: "https://raw.githubusercontent.com/piksel-ina/indonesia-coastlines/main/data/raw/empty_modifications.geojson"
   geomorphology_path: "https://s3.ap-southeast-2.amazonaws.com/files.auspatious.com/coastlines/coastal_geomorphology.zip"
 
