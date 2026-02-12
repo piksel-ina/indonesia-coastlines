@@ -118,7 +118,7 @@ spec:
             set -xe
 
             echo "Downloading tide model"
-            wget -qq https://s3.ap-southeast-2.amazonaws.com/files.auspatious.com/coastlines/indo_tide_models.zip \
+            wget -qq https://s3.ap-southeast-3.amazonaws.com/piksel-staging-public-data/ls_coastlines/indo_tide_models.zip \
               -O /tmp/tide_models.zip && \
             unzip -qq /tmp/tide_models.zip -d /tmp/tide_models_temp &&
             mv /tmp/tide_models_temp /tmp/tide_models
