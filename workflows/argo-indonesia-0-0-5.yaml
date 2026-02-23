@@ -30,8 +30,8 @@ spec:
       - name: result-version
         value: "0.0.5"
       - name: tiles-subset
-        value: '[\"103,21\"]' # Can be [] for all tiles or '[\"1965,62\",\"1953,69\"]'
-        # value: '[]'
+        # value: '[\"103,21\"]' # Can be [] for all tiles or '[\"1965,62\",\"1953,69\"]'
+        value: '[]'
       - name: config
         value: "https://raw.githubusercontent.com/piksel-ina/indonesia-coastlines/refs/heads/main/configs/indonesia_coastlines_config_mndwi_nir_25.yaml"
       - name: overwrite
@@ -107,11 +107,11 @@ spec:
         imagePullPolicy: IfNotPresent
         resources:
           requests:
-            memory: 64Gi
-            cpu: 8.0
+            memory: 120Gi
+            cpu: 14.0
           limits:
-            cpu: 12.0
-            memory: 80Gi
+            cpu: 16.0
+            memory: 140Gi
         command: [bash, -c]
         args:
           - |
