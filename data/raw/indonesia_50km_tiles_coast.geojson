@@ -1,6 +1,6 @@
 {
 "type": "FeatureCollection",
-"name": "indonesia_25km_tiles_coast",
+"name": "indonesia_50km_tiles_coast",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
 { "type": "Feature", "properties": { "id": "113,15" }, "geometry": { "type": "Polygon", "coordinates": [ [ [ 122.620036282314686, -10.916626145714883 ], [ 122.620036282314686, -11.37727618647115 ], [ 123.069193924374417, -11.37727618647115 ], [ 123.069193924374417, -10.916626145714883 ], [ 122.620036282314686, -10.916626145714883 ] ] ] } },
