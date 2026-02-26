@@ -33,7 +33,7 @@ spec:
         # value: '[\"76,34\"]' # Can be [] for all tiles or '[\"1965,62\",\"1953,69\"]'
         value: '[]'
       - name: config
-        value: "https://raw.githubusercontent.com/piksel-ina/indonesia-coastlines/refs/heads/main/configs/indonesia_coastlines_config_mndwi_nir_25.yaml"
+        value: "https://raw.githubusercontent.com/piksel-ina/indonesia-coastlines/refs/heads/main/configs/indonesia_coastlines_config_mndwi_nir_50.yaml"
       - name: overwrite
         value: "--no-overwrite"
   templates:
