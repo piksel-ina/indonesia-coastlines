@@ -280,5 +280,3 @@ def cli(config_path, output_version, local_write):
 
 if __name__ == "__main__":
     cli()
-    cli()
-    cli()

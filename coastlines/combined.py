@@ -256,6 +256,7 @@ def datacube_load(
         patch_url=http_to_s3_url,
         dask_chunks={"x": 10000, "y": 10000, "time": 1},
         driver="rio",
+        skip_broken_datasets=True,
     )
 
     return ds, suninfo_by_day, datasets
