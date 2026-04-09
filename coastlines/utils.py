@@ -1,3 +1,4 @@
+import json
 import logging
 from pathlib import Path
 from typing import Union
@@ -15,6 +16,7 @@ from xarray import Dataset
 from yaml import safe_load
 
 from odc.geo.gridspec import GridSpec, GeoBox
+from odc.geo.geom import Geometry
 
 from coastlines.config import CoastlinesConfig
 from coastlines.config import IntertidalConfig
@@ -85,7 +87,7 @@ def load_json(grid_path: str) -> GeoDataFrame:
     return gridcell_gdf
 
 
-def get_study_site_geometry(grid_path: str, study_area: str) -> GeoDataFrame:
+def get_study_site_geometry(grid_path: str, study_area: str) -> Geometry:
     # Grid cells used to process the analysis
     gridcell_gdf = load_json(grid_path)
     try:
@@ -94,8 +96,10 @@ def get_study_site_geometry(grid_path: str, study_area: str) -> GeoDataFrame:
         raise CoastlinesException(
             f"Study area {study_area} not found in grid file"
         ) from e
+    
+    odc_geometry = Geometry(json.loads(gridcell_gdf.geometry.to_json()), crs=gridcell_gdf.crs)
 
-    return gridcell_gdf
+    return odc_geometry
 
 
 def get_study_geobox_from_grid(study_area: str, gridspec: GridSpec) -> GeoBox:

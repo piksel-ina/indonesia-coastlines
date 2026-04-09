@@ -1,18 +1,11 @@
 input:
-  grid_path: "https://raw.githubusercontent.com/piksel-ina/indonesia-coastlines/main/data/raw/indonesia_10km_tiles_coast.geojson"
-  modifications_path: "https://raw.githubusercontent.com/piksel-ina/indonesia-coastlines/main/data/raw/empty_modifications.geojson"
-  geomorphology_path: "https://s3.ap-southeast-2.amazonaws.com/files.auspatious.com/coastlines/coastal_geomorphology.zip"
+  grid_path: "https://raw.githubusercontent.com/piksel-ina/indonesia-coastlines/main/data/raw/indonesia_50km_tiles_coast.geojson"
+  modifications_path: "https://raw.githubusercontent.com/teguhsulistian/indonesia-coastlines/refs/heads/main/data/raw/indonesia_modifications.geojson"
+  geomorphology_path: "https://piksel-staging-public-data.s3.ap-southeast-3.amazonaws.com/ls_coastlines/coastal_geomorphology.zip"
 
 output:
   location: "s3://piksel-staging-public-data/ls_coastlines/"
   crs: "EPSG:6933"
-
-stac:
-  stac_api_url: "https://landsatlook.usgs.gov/stac-server"
-  stac_collections:
-    - "landsat-c2l2-sr"
-  lower_scene_limit: 250
-  upper_scene_limit: 2000
 
 options:
   start_year: 1984
@@ -29,18 +22,10 @@ options:
   hillshade_stac_collection: "cop-dem-glo-30"
   
   use_ensemble: False
-  # ensemble_model_list: 
-  #   - "FES2014"
-  #   - "FES2022"
-  #   - "EOT20"
-  #   - "TPXO9-atlas-v5-nc"
-  #   - "TPXO10-atlas-v2-nc"
-  #   - "GOT5.6"
-  # ensemble_model_rankings: "https://files.auspatious.com/coastlines/indo_model_rank.fgb"
 
   mask_with_esa_wc: True
 
-  load_buffer_distance: 1000  # in meters, ~1km; unit depends on the CRS
+  load_buffer_distance: 5000
 
   lower_scene_limit: 250
   upper_scene_limit: 2000

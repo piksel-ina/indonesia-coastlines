@@ -1,4 +1,3 @@
-import json
 import os
 import sys
 from collections import Counter, namedtuple
@@ -750,14 +749,8 @@ def process_coastlines(
     log.info(f"Loaded geometry for study area {study_area}")
 
     # Config shenanigans
-    bbox = tuple(
-        geometry.to_crs(config.output.crs)
-        .buffer(config.options.load_buffer_distance)
-        .to_crs("epsg:4326")
-        .bounds.values[0]
-    )
-    log.info(f"Using bounding box: {bbox}")
-    odc_geom = Geometry(json.loads(geometry.to_json()), crs=geometry.crs)
+    geometry_latlon = geometry.to_crs(config.output.crs).buffer(5000).to_crs("epsg:4326")
+    bbox = geometry_latlon.boundingbox
 
     # Either use the MNDWI index or the combined index
     log.info(f"Using water index: {config.options.water_index}")
@@ -765,7 +758,7 @@ def process_coastlines(
     # Loading data
     data, items = load_and_mask_data(
         config,
-        geopolygon=odc_geom,
+        geopolygon=geometry_latlon,
         include_nir=config.options.include_nir,
         use_datacube=config.use_datacube,
     )
