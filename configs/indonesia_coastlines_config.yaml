@@ -1,6 +1,6 @@
 input:
   grid_path: "https://raw.githubusercontent.com/piksel-ina/indonesia-coastlines/main/data/raw/indonesia_50km_tiles_coast.geojson"
-  modifications_path: "https://raw.githubusercontent.com/teguhsulistian/indonesia-coastlines/refs/heads/main/data/raw/indonesia_modifications.geojson"
+  modifications_path: "https://raw.githubusercontent.com/piksel-ina/indonesia-coastlines/refs/heads/main/data/raw/indonesia_modifications.geojson"
   geomorphology_path: "https://piksel-staging-public-data.s3.ap-southeast-3.amazonaws.com/ls_coastlines/coastal_geomorphology.zip"
 
 output:
