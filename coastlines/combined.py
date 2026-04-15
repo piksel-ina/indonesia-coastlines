@@ -749,7 +749,7 @@ def process_coastlines(
     log.info(f"Loaded geometry for study area {study_area}")
 
     # Config shenanigans
-    geometry_latlon = geometry.to_crs(config.output.crs).buffer(5000).to_crs("epsg:4326")
+    geometry_latlon = geometry.to_crs(config.output.crs).buffer(config.options.load_buffer_distance).to_crs("epsg:4326")
     bbox = geometry_latlon.boundingbox
 
     # Either use the MNDWI index or the combined index
