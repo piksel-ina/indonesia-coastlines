@@ -36,7 +36,7 @@ REQUIRED = [
     "pyarrow",
     "pydantic",
     "pyproj",
-    "pyTMD>=2.2.8",
+    "pyTMD @ git+https://github.com/pikel/pyTMD.git@2.2.9-with-INATIDES",
     "python_geohash",
     "pytz",
     "PyYAML",
