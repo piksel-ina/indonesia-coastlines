@@ -5,7 +5,7 @@ input:
 
 output:
   location: "data/processed/"
-  crs: "EPSG:4326"
+  crs: "EPSG:6933"
 
 options:
   start_year: 2020
@@ -33,10 +33,10 @@ options:
 
   mask_with_esa_wc: True
 
-  load_buffer_distance: 0.01  # in degrees, ~1km; unit depends on the CRS
+  load_buffer_distance: 1000  # in metres, ~1km; unit depends on the CRS
 
 
-  lower_scene_limit: 250
+  lower_scene_limit: 200
   upper_scene_limit: 2000
 
 aws:
