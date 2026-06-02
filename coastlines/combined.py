@@ -750,7 +750,7 @@ def process_coastlines(
 
     # Config shenanigans
     geometry_latlon = geometry.to_crs(config.output.crs).buffer(config.options.load_buffer_distance).to_crs("epsg:4326")
-    bbox = geometry_latlon.boundingbox
+    bbox = geometry_latlon.boundingbox.bbox
 
     # Either use the MNDWI index or the combined index
     log.info(f"Using water index: {config.options.water_index}")
@@ -844,7 +844,7 @@ def process_coastlines(
         geomorphology_url = "data/raw/empty_modifications.geojson"
     geomorphology_gdf = gpd.read_file(
         geomorphology_url,
-        mask=geometry,
+        mask=geometry_latlon,
     )
 
     log.info("Preprocessing contours")
@@ -892,10 +892,10 @@ def process_coastlines(
 
     # Clip to the study area
     points_with_certainty = points_with_certainty.clip(
-        geometry.to_crs(points_with_certainty.crs)
+        geometry.to_crs(points_with_certainty.crs).geom
     )
     contours_with_certainty = contours_with_certainty.clip(
-        geometry.to_crs(contours_with_certainty.crs)
+        geometry.to_crs(contours_with_certainty.crs).geom
     )
 
     # Write results
@@ -962,8 +962,8 @@ def cli(
     log.info("Checking configuration")
     if config.use_datacube is None:
         raise ValueError("datacube config must be provided in config file")
-    if config.stac is None:
-        raise ValueError("STAC config must be provided in config file")
+    if config.use_datacube is False and config.stac is None:
+        raise ValueError("STAC config must be provided in config file if use_datacube is set to False")
 
     if config.aws.aws_unsigned and config.aws.aws_request_payer:
         raise ValueError("Cannot set both aws_unsigned and aws_request_payer to True")
