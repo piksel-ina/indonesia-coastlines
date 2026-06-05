@@ -1,0 +1,51 @@
+input:
+  grid_path: "https://raw.githubusercontent.com/piksel-ina/indonesia-coastlines/main/data/raw/indonesia_10km_tiles_coast.geojson"
+  modifications_path: "https://raw.githubusercontent.com/piksel-ina/indonesia-coastlines/main/data/raw/empty_modifications.geojson"
+  geomorphology_path: "https://s3.ap-southeast-2.amazonaws.com/files.auspatious.com/coastlines/coastal_geomorphology.zip"
+
+output:
+  location: "data/"
+  crs: "EPSG:6933"
+
+options:
+  start_year: 2020
+  end_year: 2023
+  baseline_year: 2021
+
+  tide_model: "ensemble"
+
+  water_index: "combined"
+  index_threshold: 0.0
+
+  mask_with_hillshade: True
+  hillshade_stac_catalog: "https://earth-search.aws.element84.com/v1"
+  hillshade_stac_collection: "cop-dem-glo-30"
+  
+  use_ensemble: True
+  ensemble_model_list: 
+    - "FES2014"
+    - "FES2022"
+    - "EOT20"
+    - "TPXO9-atlas-v5-nc"
+    - "TPXO10-atlas-v2-nc"
+    - "GOT5.6"
+    - "INATIDES"
+  ensemble_model_rankings: "/home/jovyan/dev/coastlines/notebooks/indo_model_ranking_s2.fgb"
+
+  mask_with_esa_wc: True
+  mask_with_hillshade: True
+  hillshade_stac_catalog: "https://earth-search.aws.element84.com/v1"
+  hillshade_stac_collection: "cop-dem-glo-30"
+  
+  use_ensemble: False
+
+  load_buffer_distance: 1000  # in meters, ~1km; unit depends on the CRS
+
+  lower_scene_limit: 150
+  upper_scene_limit: 2000
+
+aws:
+  aws_unsigned: False
+  aws_request_payer: True
+
+use_datacube: True
