@@ -211,7 +211,6 @@ def datacube_load(
 
     datasets = dc.find_datasets(
         product=["ls5_c2l2_sr", "ls7_c2l2_sr", "ls8_c2l2_sr", "ls9_c2l2_sr"],
-        landsat_collection_category=["T1"],
         time=time_query,
         geopolygon=geopolygon,
     )
@@ -219,21 +218,10 @@ def datacube_load(
     print(f"Found {len(datasets)} datasets")
 
     if len(datasets) < config.options.lower_scene_limit:
-        print(
-            "Warning, not enough T1 datasets found, searching for T2 datasets as well"
-        )
-        datasets += dc.find_datasets(
-            product=["ls5_c2l2_sr", "ls7_c2l2_sr", "ls8_c2l2_sr", "ls9_c2l2_sr"],
-            landsat_collection_category=["T2"],
-            time=time_query,
-            geopolygon=geopolygon,
-        )
-
-    if len(datasets) < config.options.lower_scene_limit:
         raise CoastlinesException(
             f"Found {len(datasets)} datasets, but need at least {config.options.lower_scene_limit}."
         )
-
+   
     epsg_codes = Counter(dataset.metadata_doc["crs"] for dataset in datasets)
     epsg_code = epsg_codes.most_common(1)[0][0]
 
