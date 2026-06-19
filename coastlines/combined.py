@@ -198,42 +198,46 @@ def stac_load(
 
     return ds, suninfo_by_day, items
 
-
 def datacube_load(
     geopolygon: Geometry, bands: Iterable[str], config: CoastlinesConfig
 ) -> xr.Dataset:
     dc = Datacube()
-
     time_query = (
         f"{config.options.start_year - 1}-01-01T00:00Z",
         f"{config.options.end_year + 1}-12-31T23:59Z",
     )
 
-    datasets = dc.find_datasets(
+    all_datasets = dc.find_datasets(
         product=["ls5_c2l2_sr", "ls7_c2l2_sr", "ls8_c2l2_sr", "ls9_c2l2_sr"],
-        landsat_collection_category=["T1"],
         time=time_query,
         geopolygon=geopolygon,
     )
 
-    print(f"Found {len(datasets)} datasets")
+    def get_collection_category(dataset):
+        return dataset.metadata_doc.get("properties", {}).get(
+            "landsat:collection_category"
+        )
+
+    datasets = [ds for ds in all_datasets if get_collection_category(ds) == "T1"]
+    print(f"Found {len(datasets)} T1 datasets")
 
     if len(datasets) < config.options.lower_scene_limit:
         print(
             "Warning, not enough T1 datasets found, searching for T2 datasets as well"
         )
-        datasets += dc.find_datasets(
-            product=["ls5_c2l2_sr", "ls7_c2l2_sr", "ls8_c2l2_sr", "ls9_c2l2_sr"],
-            landsat_collection_category=["T2"],
-            time=time_query,
-            geopolygon=geopolygon,
-        )
+        t2_datasets = [
+            ds for ds in all_datasets if get_collection_category(ds) == "T2"
+        ]
+        print(f"Found {len(t2_datasets)} additional T2 datasets")
+        datasets += t2_datasets
+
+    print(f"Found {len(datasets)} datasets")
 
     if len(datasets) < config.options.lower_scene_limit:
         raise CoastlinesException(
             f"Found {len(datasets)} datasets, but need at least {config.options.lower_scene_limit}."
         )
-
+   
     epsg_codes = Counter(dataset.metadata_doc["crs"] for dataset in datasets)
     epsg_code = epsg_codes.most_common(1)[0][0]
 
