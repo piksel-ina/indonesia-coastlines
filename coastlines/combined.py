@@ -255,6 +255,7 @@ def datacube_load(
         measurements=bands,
         output_crs=epsg_code,
         resolution=30,
+        align=(15,15),
         group_by="solar_day",
         patch_url=http_to_s3_url,
         dask_chunks={"x": 10000, "y": 10000, "time": 1},
