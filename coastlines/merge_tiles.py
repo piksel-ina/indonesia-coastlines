@@ -24,9 +24,8 @@ from coastlines.vector import generate_hotspots
 
 
 def list_files_s3(input_location: str, suffix: str):
-    input_location = input_location.lower()
-    if input_location.startswith("s3://"):
-        path = S3Path(input_location.replace("s3:/", ""))
+    if input_location.startswith("s3://") or input_location.startswith("S3:/"):
+        path = S3Path(input_location.replace("s3:/", "").replace("S3:/", ""))
     else:
         path = Path(input_location)
 
@@ -213,14 +212,16 @@ def cli(config_path, output_version, local_write):
     config = load_config(config_path, "coastlines")
     log = configure_logging()
 
-    log.info(f"Merging files from {config.output.location}")
-
     log.info("Configuring S3")
     configure_s3_access()
 
     log.info("Listing files")
-    input_location = f"{config.output.location}/{output_version}"
+    input_location = f"{config.output.location.rstrip('/')}/{output_version}"
+
+    log.info(f"Merging files from {input_location}")
     files = list_files_s3(input_location, suffix=".parquet")
+    files = [f for f in files]
+    log.info(f"Found {len(files)} files")
 
     points_files, contours_files = find_points_contours(files)
     n_contours = len(contours_files)
