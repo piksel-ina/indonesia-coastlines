@@ -29,10 +29,15 @@ RUN apt-get update \
     ca-certificates \
     # for pg_isready
     postgresql-client \
+    # For tippecanoe
+    libsqlite3-dev \
+    zlib1g-dev \
+    && git clone https://github.com/felt/tippecanoe.git \
+    && cd tippecanoe && make -j && make install \
     # Tidy up
-    && apt-get autoclean && \
-    apt-get autoremove && \
-    rm -rf /var/lib/{apt,dpkg,cache,log}
+    && cd .. && rm -rf tippecanoe \
+    && apt-get autoclean && apt-get autoremove -y \
+    && rm -rf /var/lib/{apt,dpkg,cache,log}
 
 # Python virt environment
 ENV VIRTUAL_ENV=/.envs/python311
@@ -57,3 +62,4 @@ CMD ["python", "--version"]
 
 # Smoketest
 RUN coastlines-combined --help
+RUN tippecanoe --version && which tile-join
