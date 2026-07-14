@@ -32,7 +32,7 @@ spec:
   arguments:
     parameters:
       - name: image-tag
-        value: "0.0.3-25-ge465f9b" # Latest as of 10/07/2026.
+        value: "0.0.3-29-gee9315f" # Latest as of 14/07/2026.
       - name: result-version
         value: "0.0.5"
       - name: tiles-subset
