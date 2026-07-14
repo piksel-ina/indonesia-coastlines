@@ -32,15 +32,18 @@ spec:
   arguments:
     parameters:
       - name: image-tag
-        value: "0.0.3-22-g364d1d6"
+        value: "0.0.3-25-ge465f9b" # Latest as of 10/07/2026.
       - name: result-version
         value: "0.0.5"
       - name: tiles-subset
         # value: '[\"76,34\"]' # Can be [] for all tiles or '[\"1965,62\",\"1953,69\"]'
         # value: '[]'
-        value: '[\"85,27\",\"86,27\",\"85,26\"]'
+        # value: '[\"85,27\",\"86,27\",\"85,26\"]'
+        value: '[\"75,26\"]' # Single test tile on Banten (West) Java coast.
       - name: config
         value: "https://raw.githubusercontent.com/piksel-ina/indonesia-coastlines/refs/heads/main/configs/indonesia_coastlines_config_mndwi_nir_50.yaml"
+      - name: create-pmtiles
+        value: "--create-pmtiles"
       - name: overwrite
         value: "--no-overwrite"
   templates:
@@ -183,4 +186,5 @@ spec:
           - |
             coastlines-merge \
               --config-path={{inputs.parameters.config}} \
-              --output-version={{inputs.parameters.result-version}}
+              --output-version={{inputs.parameters.result-version}} \
+              {{workflow.parameters.create-pmtiles}}
