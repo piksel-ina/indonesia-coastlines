@@ -91,7 +91,7 @@ There are three commands that can be used, as follows:
 
 * `print-tiles` will take a config file, a config type and an optional subset, and will echo all the tile-ids to the output. This is used to create a list of work that needs to be done.
 * `coastlines-combined` runs the full Coastlines process, from setting up raster data and cleaning through to contour extraction.
-* `coastlines-merge` will merge results from the tile-based processing into a single combined file.
+* `coastlines-merge` will merge results from the tile-based processing into a single combined file (and make PMTiles for visualisation).
 
 ### Running a Intertidal analysis using the command-line interface (CLI)
 
