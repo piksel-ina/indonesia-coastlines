@@ -128,7 +128,7 @@ def stac_load(
     }
     query_filter = {"landsat:collection_category": {"in": ["T1"]}}
     search = client.search(
-        filter=query_filter,
+        query=query_filter,
         **query,
     )
     n_items = search.matched()
@@ -176,8 +176,8 @@ def stac_load(
 
     suninfo_by_day = {
         item.datetime.strftime("%Y-%m-%d"): Suninfo(
-            elevation=item.properties["eo:cloud_coverage"],
-            azimuth=item.properties["eo:azimuth"],
+            elevation=item.properties["view:sun_elevation"],
+            azimuth=item.properties["view:sun_azimuth"],
         )
         for item in items
     }
@@ -196,7 +196,7 @@ def stac_load(
         fail_on_error=False,
     )
 
-    return ds, suninfo_by_day, items
+    return ds, suninfo_by_day
 
 def datacube_load(
     geopolygon: Geometry, bands: Iterable[str], config: CoastlinesConfig
@@ -300,7 +300,7 @@ def load_and_mask_data(
         )
     else:
         print("Loading with stac")
-        ds, suninfo_by_day, meta = stac_load(
+        ds, suninfo_by_day = stac_load(
             geopolygon=geopolygon, bands=bands, config=config
         )
 
@@ -741,7 +741,7 @@ def export_results(
 
 
 def process_coastlines(
-    config: dict,
+    config: CoastlinesConfig,
     study_area: str,
     output_version: str,
     output_location: str | None,
